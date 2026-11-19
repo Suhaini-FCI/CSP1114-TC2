@@ -50,7 +50,7 @@ button:disabled{opacity:.4}
     <p><button id="join">Join game</button></p>
     <div id="jerr" class="err"></div>
   </div>
-  <p><button id="hostbtn" class="alt">I’m the teacher: host a game</button></p>
+  <p><button id="hostbtn" class="alt hidden">I’m the teacher: host a game</button></p>
 </section>
 
 <section id="hsetup" class="hidden">
@@ -121,6 +121,7 @@ function mk(t,c,x){const e=document.createElement(t);if(c)e.className=c;if(x!=nu
 function show(id){["home","hsetup","lobby","hq","pl"].forEach(s=>$("#"+s).classList.toggle("hidden",s!==id))}
 const base=()=>location.origin+location.pathname;
 const params=new URLSearchParams(location.search);
+if(params.get("host")==="1")$("#hostbtn").classList.remove("hidden");
 if(params.get("c"))$("#jcode").value=params.get("c").replace(/\D/g,"").slice(0,5);
 $("#jname").value=ld("cql_name","");
 
