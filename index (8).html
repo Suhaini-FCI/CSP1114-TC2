@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Class Quiz Live</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f4f2fb;--card:#fff;--tx:#1d1b2e;--mu:#68657f;--ac:#46178f;--bd:#dedaee;--ok:#1f9d55;--bad:#e21b3c;--c0:#e21b3c;--c1:#1368ce;--c2:#c28f00;--c3:#26890c;color-scheme:light}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#16132a;--card:#221e3d;--tx:#f1eefc;--mu:#a8a3c6;--ac:#9b6bf2;--bd:#36305c;--ok:#3ddc84;--bad:#ff5c78;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#16132a;--card:#221e3d;--tx:#f1eefc;--mu:#a8a3c6;--ac:#9b6bf2;--bd:#36305c;--ok:#3ddc84;--bad:#ff5c78;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh}
+main{max-width:1000px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:1.8rem;margin:.2em 0}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;margin:12px 0}
+label{display:block;font-weight:600;margin:10px 0 4px}
+textarea,input{width:100%;font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:12px}
+textarea{min-height:220px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9rem}
+.hint{color:var(--mu);font-size:.9rem;margin:4px 0}
+button{font:inherit;font-weight:700;border:0;border-radius:12px;padding:14px 24px;background:var(--ac);color:#fff;cursor:pointer}
+button.alt{background:transparent;color:var(--ac);border:2px solid var(--ac)}
+button:disabled{opacity:.4}
+.err{color:var(--bad);font-weight:600;margin-top:8px}
+.hidden{display:none!important}
+.center{text-align:center}
+.row{display:flex;gap:12px;flex-wrap:wrap}.row>*{flex:1;min-width:140px}
+.code{font-size:clamp(3rem,12vw,6rem);font-weight:900;letter-spacing:.12em;color:var(--ac)}
+.counter{font-size:clamp(2rem,8vw,4rem);font-weight:900;margin:.2em 0}
+.top{display:flex;justify-content:space-between;align-items:center;color:var(--mu);font-weight:700}
+.timer{font-size:2.4rem;color:var(--tx)}
+.q{font-size:clamp(1.4rem,4.5vw,2.6rem);font-weight:800;text-align:center;margin:20px 0}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.opts{grid-template-columns:1fr}}
+.opt{color:#fff;border-radius:12px;padding:22px 16px;font-size:clamp(1.1rem,3vw,1.6rem);font-weight:700;display:flex;gap:12px;align-items:center;justify-content:space-between;min-height:84px;transition:opacity .2s;border:0;text-align:left;width:100%}
+.opt.dim{opacity:.25}.opt.right{outline:6px solid var(--ok);outline-offset:2px}
+.opt small{font-size:1rem;background:rgba(0,0,0,.25);border-radius:8px;padding:2px 10px}
+.bar{display:flex;align-items:center;gap:10px;margin:8px 0}
+.bar .n{width:32%;font-weight:700;overflow-wrap:anywhere}
+.bar .f{height:34px;background:var(--ac);border-radius:8px;color:#fff;font-weight:800;display:flex;align-items:center;padding:0 10px;min-width:56px;transition:width .6s}
+.big{font-size:clamp(2rem,9vw,3.5rem);font-weight:900;margin:.3em 0}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+#popts.opts{grid-template-columns:1fr 1fr}
+#popts .opt{justify-content:center;min-height:min(34vh,190px);font-size:4rem;padding:10px}
+table{border-collapse:collapse;font-size:.9rem;width:100%}
+th,td{border:1px solid var(--bd);padding:6px 8px;text-align:center}
+th{background:var(--card);position:sticky;top:0}
+td.nm{text-align:left;font-weight:700}td.ok{font-weight:800}td.bad{font-weight:800}td.no{color:var(--mu)}
+tr.foot td{font-weight:700;background:var(--card)}
+</style></head><body><main>
+
+<section id="home" class="center">
+  <h1>🎓 Class Quiz Live</h1>
+  <p class="hint">Free and built for big classes. Teacher hosts, students join from their phones.</p>
+  <div id="cfgerr" class="card err hidden">Firebase isn’t set up yet. Open <code>firebase-config.js</code> and paste your settings (see README).</div>
+  <div class="card">
+    <label for="jcode">I’m a student</label>
+    <div class="row"><input id="jcode" inputmode="numeric" maxlength="5" placeholder="Game code"><input id="jname" maxlength="20" placeholder="Your nickname"></div>
+    <p><button id="join">Join game</button></p>
+    <div id="jerr" class="err"></div>
+  </div>
+  <p><button id="hostbtn" class="alt hidden">I’m the teacher: host a game</button></p>
+</section>
+
+<section id="hlogin" class="hidden center">
+  <h1>Teacher login</h1>
+  <div class="card">
+    <label for="tpw">Teacher password</label>
+    <input id="tpw" type="password" autocomplete="off" placeholder="Teacher password">
+    <div id="lerr" class="err"></div>
+    <p><button id="login">Enter</button> <button id="lback" class="alt">Back</button></p>
+  </div>
+</section>
+
+<section id="hsetup" class="hidden">
+  <h1>Host a game</h1>
+  <div class="card">
+    <label for="quiz">Questions</label>
+    <p class="hint">First line = question. Next lines = answers (2–4). Put * before the correct answer. Blank line between questions.</p>
+    <textarea id="quiz"></textarea>
+    <label for="secs">Seconds per question</label><input id="secs" type="number" min="5" max="120" value="20">
+    <div id="herr" class="err"></div>
+    <p><button id="create">Create game</button> <button id="hback" class="alt">Back</button></p>
+  </div>
+</section>
+
+<section id="lobby" class="hidden center">
+  <p class="hint">Students: open this page on your phone and enter the code</p>
+  <div class="code" id="gcode"></div>
+  <div id="qr" style="display:inline-block;background:#fff;color:#000;padding:12px;border-radius:12px;margin:8px 0"></div>
+  <p class="hint">Scan to join, or open the quiz site and type the code</p>
+  <div class="counter" id="pcount">0</div>
+  <p class="hint">players joined</p>
+  <button id="begin" disabled>Start quiz</button>
+</section>
+
+<section id="hq" class="hidden">
+  <div class="top"><span id="hprog"></span><span id="hans"></span><span class="timer" id="htime"></span></div>
+  <div class="q" id="hqtext"></div>
+  <div class="opts" id="hopts"></div>
+  <div id="hres" class="hidden">
+    <h2 id="hbtitle">Top players</h2><div id="hbars"></div>
+  </div>
+  <div id="sum" class="hidden">
+    <h2>Summary: who answered right and wrong</h2>
+    <p class="hint">✓ = correct, ✗ = wrong, – = no answer (or joined late)</p>
+    <div style="overflow-x:auto"><table id="stbl"></table></div>
+    <p><button id="csv" class="alt">Download results (CSV)</button></p>
+  </div>
+  <p class="center"><button id="hreveal" class="alt">Skip to answer</button> <button id="hnext" class="hidden">Next</button> <button id="hfin" class="hidden alt">Finish</button></p>
+</section>
+
+<section id="pl" class="hidden center">
+  <div class="top"><span id="pname"></span><span id="pscore"></span></div>
+  <div id="pmsg" class="big"></div>
+  <div id="psub" class="hint"></div>
+  <div id="psum" class="hint" style="font-size:1.05rem"></div>
+  <div class="opts hidden" id="popts"></div>
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
+import {getAuth,signInAnonymously} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+import {getFirestore,doc,setDoc,getDoc,updateDoc,onSnapshot,collection,query,where} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore.js";
+import {firebaseConfig} from "./firebase-config.js";
+
+const $=s=>document.querySelector(s);
+const SHAPES=["▲","◆","●","■"];
+const SAMPLE=`What is the capital of Malaysia?
+*Kuala Lumpur
+Penang
+Johor Bahru
+Kuching
+
+Which planet is known as the Red Planet?
+Venus
+*Mars
+Jupiter
+
+2 + 2 × 3 = ?
+*8
+10
+12
+14`;
+function ld(k,d){try{return localStorage.getItem(k)||d}catch(e){return d}}
+function sv(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function mk(t,c,x){const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e}
+function show(id){["home","hlogin","hsetup","lobby","hq","pl"].forEach(s=>$("#"+s).classList.toggle("hidden",s!==id))}
+const base=()=>location.origin+location.pathname;
+const params=new URLSearchParams(location.search);
+if(params.get("host")==="1")$("#hostbtn").classList.remove("hidden");
+if(params.get("c"))$("#jcode").value=params.get("c").replace(/\D/g,"").slice(0,5);
+$("#jname").value=ld("cql_name","");
+
+/* ---------- Firebase ---------- */
+const configured=firebaseConfig.apiKey&&!firebaseConfig.apiKey.startsWith("PASTE");
+let db,uidP;
+if(!configured){$("#cfgerr").classList.remove("hidden");$("#join").disabled=true;$("#hostbtn").disabled=true}
+else{
+  const app=initializeApp(firebaseConfig);db=getFirestore(app);
+  uidP=signInAnonymously(getAuth(app)).then(c=>c.user.uid);
+  uidP.catch(()=>{$("#cfgerr").textContent="Could not sign in. In Firebase, enable Authentication → Anonymous (see README).";$("#cfgerr").classList.remove("hidden")});
+}
+
+function parse(txt){
+  const out=[];
+  txt.trim().split(/\n\s*\n/).forEach((b,n)=>{
+    const L=b.split("\n").map(x=>x.trim()).filter(Boolean);
+    if(L.length<3||L.length>5)throw "Question "+(n+1)+": needs a question plus 2–4 answers.";
+    const o=L.slice(1),c=[];o.forEach((a,k)=>{if(a.startsWith("*"))c.push(k)});
+    if(c.length!==1)throw "Question "+(n+1)+": mark exactly one correct answer with *.";
+    out.push({q:L[0],o:o.map(a=>a.replace(/^\*\s*/,"")),c:c[0]});
+  });
+  if(!out.length)throw "Add at least one question.";
+  return out;
+}
+
+/* ================= HOST ================= */
+let Q=[],secs=20,code="",gref=null,phase="lobby",qi=0,qStart=0,tm=null;
+let players=new Map(),scores=new Map(),ans=new Map(),unP=null,unA=null,hist=[],lastS=[];
+$("#hostbtn").onclick=()=>{$("#tpw").value="";$("#lerr").textContent="";show("hlogin");$("#tpw").focus()};
+$("#lback").onclick=()=>show("home");
+$("#hback").onclick=()=>show("home");
+$("#tpw").addEventListener("keydown",e=>{if(e.key==="Enter")$("#login").click()});
+$("#login").onclick=async()=>{
+  const pw=$("#tpw").value;
+  if(!pw){$("#lerr").textContent="Enter the teacher password.";return}
+  $("#login").disabled=true;$("#lerr").textContent="";
+  try{
+    const uid=await uidP;
+    await setDoc(doc(db,"hostkeys",uid),{pw});
+    $("#tpw").value="";$("#quiz").value=ld("cql_quiz",SAMPLE);show("hsetup");
+  }catch(e){
+    $("#lerr").textContent=e.code==="permission-denied"?"Wrong teacher password (or it isn’t set up in Firebase yet).":"Could not check the password: "+(e.code||e.message);
+  }
+  $("#login").disabled=false;
+};
+$("#create").onclick=async()=>{
+  try{Q=parse($("#quiz").value)}catch(e){$("#herr").textContent=e;return}
+  $("#herr").textContent="";sv("cql_quiz",$("#quiz").value);
+  secs=Math.max(5,+$("#secs").value||20);
+  $("#create").disabled=true;
+  try{
+    const uid=await uidP;
+
+    for(let t=0;t<8;t++){
+      code=String(Math.floor(10000+Math.random()*90000));gref=doc(db,"games",code);
+      if(!(await getDoc(gref)).exists())break;
+    }
+    await setDoc(gref,{host:uid,state:"lobby",n:Q.length,secs,qi:-1,c:-1,sc:{},top:[],last:false});
+  }catch(e){$("#herr").textContent=e.code==="permission-denied"?"Not logged in as teacher. Go back and enter the password again.":"Could not create the game: "+(e.code||e.message)+". Check the README setup steps.";$("#create").disabled=false;return}
+  $("#create").disabled=false;
+  players=new Map();scores=new Map();hist=[];phase="lobby";
+  $("#gcode").textContent=code;const qr=$("#qr");qr.textContent="";
+  try{new QRCode(qr,{text:base()+"?c="+code,width:220,height:220,correctLevel:QRCode.CorrectLevel.M})}catch(e){qr.textContent=base()+"?c="+code}$("#pcount").textContent="0";$("#begin").disabled=true;
+  if(unP)unP();
+  unP=onSnapshot(collection(db,"games",code,"players"),snap=>{
+    snap.docChanges().forEach(ch=>{
+      if(ch.type==="removed")players.delete(ch.doc.id);
+      else{players.set(ch.doc.id,ch.doc.data().name);if(!scores.has(ch.doc.id))scores.set(ch.doc.id,0)}
+    });
+    $("#pcount").textContent=players.size;$("#begin").disabled=players.size<1;
+  });
+  show("lobby");
+};
+$("#begin").onclick=()=>{qi=0;ask()};
+
+async function ask(){
+  phase="q";const q=Q[qi];ans=new Map();qStart=Date.now();
+  $("#hprog").textContent="Question "+(qi+1)+" of "+Q.length;$("#hans").textContent="0 / "+players.size+" answered";
+  $("#hqtext").textContent=q.q;
+  const box=$("#hopts");box.textContent="";
+  q.o.forEach((a,k)=>{const d=mk("div","opt");d.style.background="var(--c"+k+")";d.id="ho"+k;d.appendChild(mk("span","",SHAPES[k]+"  "+a));box.appendChild(d)});
+  $("#sum").classList.add("hidden");$("#hres").classList.add("hidden");$("#hnext").classList.add("hidden");$("#hfin").classList.add("hidden");$("#hreveal").classList.remove("hidden");
+  if(unA)unA();
+  unA=onSnapshot(query(collection(db,"games",code,"answers"),where("q","==",String(qi))),snap=>{
+    snap.docChanges().forEach(ch=>{if(ch.type==="added")ans.set(ch.doc.id.split("_")[1],ch.doc.data())});
+    $("#hans").textContent=ans.size+" / "+players.size+" answered";
+    if(phase==="q"&&players.size>0&&ans.size>=players.size)reveal();
+  });
+  try{await updateDoc(gref,{state:"q",qi,n:Q.length,q:q.q,o:q.o,secs,c:-1,sc:{},top:[],last:false})}
+  catch(e){$("#hans").textContent="Error sending question: "+(e.code||e.message)}
+  qStart=Date.now();
+  clearInterval(tm);
+  tm=setInterval(()=>{
+    const el=(Date.now()-qStart)/1000;$("#htime").textContent=Math.max(0,Math.ceil(secs-el));
+    if(el>=secs+2)reveal(); // 2 s grace so late-arriving answers still count
+  },250);
+  show("hq");
+}
+$("#hreveal").onclick=()=>reveal();
+
+async function reveal(){
+  if(phase!=="q")return;phase="r";clearInterval(tm);$("#htime").textContent="";
+  const q=Q[qi],cnt=q.o.map(()=>0),sc={},last=qi===Q.length-1,h=new Map();hist[qi]=h;
+  players.forEach((name,uid)=>{
+    const a=ans.get(uid);let gain=0;
+    if(a&&a.k>=0&&a.k<cnt.length)cnt[a.k]++;
+    if(a&&a.k===q.c)gain=Math.round(500+500*(1-Math.min(1,Math.max(0,a.ms)/(secs*1000))));
+    h.set(uid,a?(a.k===q.c?1:0):-1);
+    scores.set(uid,(scores.get(uid)||0)+gain);
+    sc[uid]=[scores.get(uid),0,gain,a&&a.k===q.c?1:0,a?1:0];
+  });
+  const S=[...players.keys()].sort((a,b)=>scores.get(b)-scores.get(a));
+  S.forEach((uid,r)=>{sc[uid][1]=r+1});
+  const top=S.slice(0,5).map(uid=>({n:players.get(uid),s:scores.get(uid)}));
+  q.o.forEach((a,k)=>{
+    const e=$("#ho"+k);e.classList.add(k===q.c?"right":"dim");e.appendChild(mk("small","",String(cnt[k])));
+  });
+  try{await updateDoc(gref,{state:"r",c:q.c,sc,top,last,n:Q.length,total:S.length})}
+  catch(e){$("#hans").textContent="Error sending results: "+(e.code||e.message)}
+  drawBoard(S,last);
+}
+function drawBoard(S,last){
+  $("#hbtitle").textContent=last?"🏆 Final results":"Top players";
+  const mx=Math.max(1,S.length?scores.get(S[0]):1),box=$("#hbars");box.textContent="";
+  S.slice(0,last?10:5).forEach((uid,k)=>{
+    const sc=scores.get(uid),r=mk("div","bar"),f=mk("div","f",String(sc));
+    r.appendChild(mk("div","n",(k===0&&sc>0?"🥇 ":"")+players.get(uid)));f.style.width="0%";r.appendChild(f);box.appendChild(r);
+    setTimeout(()=>f.style.width=Math.max(14,sc/mx*68)+"%",50);
+  });
+  $("#hres").classList.remove("hidden");$("#hreveal").classList.add("hidden");
+  $("#hnext").classList.toggle("hidden",last);$("#hfin").classList.toggle("hidden",!last);
+  if(last){lastS=S;buildSummary(S)}
+}
+function cell(uid,i){return hist[i]&&hist[i].has(uid)?hist[i].get(uid):-2}
+function buildSummary(S){
+  const n=Q.length,t=$("#stbl");t.textContent="";
+  const hr=mk("tr");["#","Name","Score","Correct"].concat(Q.map((_,i)=>"Q"+(i+1))).forEach(x=>hr.appendChild(mk("th","",x)));t.appendChild(hr);
+  S.forEach((uid,r)=>{
+    const tr=mk("tr"),v=[];let c=0;
+    for(let i=0;i<n;i++){const x=cell(uid,i);v.push(x);if(x===1)c++}
+    tr.appendChild(mk("td","",String(r+1)));tr.appendChild(mk("td","nm",players.get(uid)));
+    tr.appendChild(mk("td","",String(scores.get(uid))));tr.appendChild(mk("td","",c+"/"+n));
+    v.forEach(x=>tr.appendChild(mk("td",x===1?"ok":x===0?"bad":"no",x===1?"✓":x===0?"✗":"–")));
+    t.appendChild(tr);
+  });
+  const ft=mk("tr","foot");ft.appendChild(mk("td","",""));ft.appendChild(mk("td","nm","% correct"));ft.appendChild(mk("td","",""));ft.appendChild(mk("td","",""));
+  for(let i=0;i<n;i++){let c=0;S.forEach(u=>{if(cell(u,i)===1)c++});ft.appendChild(mk("td","",S.length?Math.round(c/S.length*100)+"%":"-"))}
+  t.appendChild(ft);$("#sum").classList.remove("hidden");
+}
+$("#csv").onclick=()=>{
+  const esc=x=>{x=String(x);if(/^[=+\-@]/.test(x))x="'"+x;return '"'+x.replace(/"/g,'""')+'"'};
+  const rows=[["Rank","Name","Score","Correct"].concat(Q.map((_,i)=>"Q"+(i+1))).map(esc).join(",")];
+  lastS.forEach((uid,r)=>{
+    let c=0;const v=Q.map((_,i)=>{const x=cell(uid,i);if(x===1)c++;return x===1?"Correct":x===0?"Wrong":"No answer"});
+    rows.push([r+1,players.get(uid),scores.get(uid),c+"/"+Q.length].concat(v).map(esc).join(","));
+  });
+  const blob=new Blob(["\ufeff"+rows.join("\n")],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="quiz-results-"+code+".csv";document.body.appendChild(a);a.click();a.remove();
+};
+$("#hnext").onclick=()=>{qi++;ask()};
+$("#hfin").onclick=async()=>{
+  try{await updateDoc(gref,{state:"closed"})}catch(e){}
+  if(unP)unP();if(unA)unA();unP=unA=null;show("home");
+};
+
+/* ================= PLAYER ================= */
+let myRes=[],me="",pc="",myUid="",unG=null,curQ=-2,curR=-2,recvAt=0,myScore=0,pTm=null,first=true;
+function msg(big,sub,cls){$("#psum").textContent="";const m=$("#pmsg");m.textContent=big;m.className="big "+(cls||"");$("#psub").textContent=sub||"";$("#popts").classList.add("hidden")}
+$("#join").onclick=async()=>{
+  pc=$("#jcode").value.replace(/\D/g,"");me=$("#jname").value.trim();
+  if(pc.length!==5){$("#jerr").textContent="Enter the 5-digit game code.";return}
+  if(!me){$("#jerr").textContent="Enter a nickname.";return}
+  $("#jerr").textContent="";sv("cql_name",me);
+  $("#join").disabled=true;
+  try{
+    myUid=await uidP;first=true;curQ=-2;curR=-2;myScore=0;myRes=[];
+    show("pl");$("#pname").textContent=me;$("#pscore").textContent="";msg("Connecting…","");
+    if(unG)unG();
+    unG=onSnapshot(doc(db,"games",pc),async s=>{
+      if(!s.exists()){
+        if(first){unG();unG=null;show("home");$("#jerr").textContent="Game not found. Check the code.";$("#join").disabled=false}
+        return;
+      }
+      if(first){
+        first=false;
+        try{
+          const pref=doc(db,"games",pc,"players",myUid),ex=await getDoc(pref);
+          if(ex.exists()){me=ex.data().name;$("#pname").textContent=me}
+          else await setDoc(pref,{name:me});
+        }catch(e){msg("Could not join",(e.code||e.message),"bad");return}
+      }
+      onGame(s.data());
+    },e=>{msg("Connection problem","Check your internet, then reload this page.","bad")});
+  }catch(e){show("home");$("#jerr").textContent="Could not connect. Please try again.";$("#join").disabled=false}
+};
+function onGame(g){
+  if(g.state==="lobby"){msg("You’re in! 🎉","Look at the teacher’s screen.")}
+  else if(g.state==="closed"){clearInterval(pTm);if(!$("#psum").textContent)msg("Game over 🏁","Thanks for playing! Final score: "+myScore+" pts")}
+  else if(g.state==="q"&&g.qi!==curQ){
+    curQ=g.qi;recvAt=Date.now();
+    const box=$("#popts");box.textContent="";
+    g.o.forEach((a,k)=>{
+      const b=mk("button","opt");b.style.background="var(--c"+k+")";b.appendChild(mk("span","",SHAPES[k]));b.setAttribute("aria-label","Option "+(k+1));
+      b.onclick=async()=>{
+        const ms=Date.now()-recvAt;
+        [...box.children].forEach((x,j)=>{x.disabled=true;if(j!==k)x.classList.add("dim")});
+        $("#psub").textContent="Answer locked in. Waiting for others…";clearInterval(pTm);
+        try{await setDoc(doc(db,"games",pc,"answers",g.qi+"_"+myUid),{q:String(g.qi),k,ms})}
+        catch(e){$("#psub").textContent="Could not send answer ("+(e.code||"error")+")"}
+      };
+      box.appendChild(b);
+    });
+    msg("Question "+(g.qi+1)+" / "+g.n,"");$("#psub").textContent="Choose the colour and shape that matches the answer on the screen";$("#popts").classList.remove("hidden");
+    let left=g.secs;clearInterval(pTm);$("#psub").textContent=left+" s";
+    pTm=setInterval(()=>{left--;$("#psub").textContent=Math.max(0,left)+" s";if(left<=0)clearInterval(pTm)},1000);
+  }
+  else if(g.state==="r"&&g.qi!==curR){
+    curR=g.qi;clearInterval(pTm);
+    const r=g.sc&&g.sc[myUid];
+    if(!r){msg("Next one!","You joined during this question.");return}
+    myScore=r[0];myRes[g.qi]=r[4]?(r[3]?1:0):-1;$("#pscore").textContent=myScore+" pts";
+    const rank="You’re #"+r[1]+" of "+g.total+(g.last?" · Game over! 🏁":"");
+    if(!r[4])msg("Time’s up ⏰",rank,"bad");
+    else if(r[3])msg("Correct! +"+r[2],rank,"ok");
+    else msg("Wrong ✗",rank,"bad");
+    if(g.last)$("#psum").textContent="Your answers: "+Array.from({length:g.n},(_,i)=>"Q"+(i+1)+" "+(myRes[i]===1?"✓":myRes[i]===0?"✗":"–")).join("   ");
+  }
+}
+</script></main></body></html>
