@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /games/{game} {
+      allow read: if true;
+      // Only the teacher who created the game can change it
+      allow create: if request.auth != null && request.resource.data.host == request.auth.uid;
+      allow update: if request.auth != null && resource.data.host == request.auth.uid;
+      allow delete: if false;
+
+      // Each student can create only their own player entry (once)
+      match /players/{player} {
+        allow read: if true;
+        allow create: if request.auth != null
+          && player == request.auth.uid
+          && request.resource.data.keys().hasOnly(['name'])
+          && request.resource.data.name is string
+          && request.resource.data.name.size() > 0
+          && request.resource.data.name.size() <= 20;
+        allow update, delete: if false;
+      }
+
+      // Each student can create only their own answer per question (once)
+      match /answers/{answer} {
+        allow read: if true;
+        allow create: if request.auth != null
+          && request.resource.data.keys().hasOnly(['q', 'k', 'ms'])
+          && request.resource.data.q is string
+          && answer == request.resource.data.q + '_' + request.auth.uid
+          && request.resource.data.k is int
+          && request.resource.data.k >= 0 && request.resource.data.k <= 3
+          && request.resource.data.ms is number;
+        allow update, delete: if false;
+      }
+    }
+  }
+}
