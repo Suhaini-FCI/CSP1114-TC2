@@ -68,7 +68,8 @@ button:disabled{opacity:.4}
 <section id="lobby" class="hidden center">
   <p class="hint">Students: open this page on your phone and enter the code</p>
   <div class="code" id="gcode"></div>
-  <p class="hint" id="glink"></p>
+  <div id="qr" style="display:inline-block;background:#fff;color:#000;padding:12px;border-radius:12px;margin:8px 0"></div>
+  <p class="hint">Scan to join, or open the quiz site and type the code</p>
   <div class="counter" id="pcount">0</div>
   <p class="hint">players joined</p>
   <button id="begin" disabled>Start quiz</button>
@@ -91,6 +92,7 @@ button:disabled{opacity:.4}
   <div class="opts hidden" id="popts"></div>
 </section>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
 import {getAuth,signInAnonymously} from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
@@ -168,7 +170,8 @@ $("#create").onclick=async()=>{
   }catch(e){$("#herr").textContent="Could not create the game: "+(e.code||e.message)+". Check the README setup steps.";$("#create").disabled=false;return}
   $("#create").disabled=false;
   players=new Map();scores=new Map();phase="lobby";
-  $("#gcode").textContent=code;$("#glink").textContent=base()+"?c="+code;$("#pcount").textContent="0";$("#begin").disabled=true;
+  $("#gcode").textContent=code;const qr=$("#qr");qr.textContent="";
+  try{new QRCode(qr,{text:base()+"?c="+code,width:220,height:220,correctLevel:QRCode.CorrectLevel.M})}catch(e){qr.textContent=base()+"?c="+code}$("#pcount").textContent="0";$("#begin").disabled=true;
   if(unP)unP();
   unP=onSnapshot(collection(db,"games",code,"players"),snap=>{
     snap.docChanges().forEach(ch=>{
